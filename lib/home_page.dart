@@ -182,87 +182,92 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    //responsive
+    double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Column(children: [
-        // high scores
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Scorul utilizatorului
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Scorul curent"),
-                  Text(
-                    currentScore.toString(),
-                    style: TextStyle(fontSize: 36),
-                  ),
-                ],
-              ),
+      body: SizedBox(
+        width: screenWidth > 428 ? 428 : screenWidth,
+        child: Column(children: [
+          // Cele mai bune scoruri
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Scorul utilizatorului
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Scorul curent"),
+                    Text(
+                      currentScore.toString(),
+                      style: TextStyle(fontSize: 36),
+                    ),
+                  ],
+                ),
 
-              // Cele mai bune scoruri
-              Text('Cele mai bune scoruri: ')
-            ],
+                // Cele mai bune scoruri
+                Text('Cele mai bune scoruri: ')
+              ],
+            ),
           ),
-        ),
 
-        // game grid
-        Expanded(
-          flex: 4,
-          child: GestureDetector(
-            onVerticalDragUpdate: (details) {
-              if (details.delta.dy > 0 &&
-                  currentDirection != snake_Direction.UP) {
-                currentDirection = snake_Direction.DOWN;
-              } else if (details.delta.dy < 0 &&
-                  currentDirection != snake_Direction.DOWN) {
-                //print('move up');
-                currentDirection = snake_Direction.UP;
-              }
-            },
-            onHorizontalDragUpdate: (details) {
-              if (details.delta.dx > 0 &&
-                  currentDirection != snake_Direction.LEFT) {
-                //print('move right');
-                currentDirection = snake_Direction.RIGHT;
-              } else if (details.delta.dx < 0 &&
-                  currentDirection != snake_Direction.RIGHT) {
-                //print('move left');
-                currentDirection = snake_Direction.LEFT;
-              }
-            },
-            child: GridView.builder(
-                itemCount: totalNumberOfSquares,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: rowSize),
-                itemBuilder: (context, index) {
-                  if (snakePos.contains(index)) {
-                    return const SnakePixel();
-                  } else if (foodPos == index) {
-                    return const FoodPixel();
-                  } else {
-                    return const BlankPixel();
-                  }
-                }),
+          // game grid
+          Expanded(
+            flex: 4,
+            child: GestureDetector(
+              onVerticalDragUpdate: (details) {
+                if (details.delta.dy > 0 &&
+                    currentDirection != snake_Direction.UP) {
+                  currentDirection = snake_Direction.DOWN;
+                } else if (details.delta.dy < 0 &&
+                    currentDirection != snake_Direction.DOWN) {
+                  //print('move up');
+                  currentDirection = snake_Direction.UP;
+                }
+              },
+              onHorizontalDragUpdate: (details) {
+                if (details.delta.dx > 0 &&
+                    currentDirection != snake_Direction.LEFT) {
+                  //print('move right');
+                  currentDirection = snake_Direction.RIGHT;
+                } else if (details.delta.dx < 0 &&
+                    currentDirection != snake_Direction.RIGHT) {
+                  //print('move left');
+                  currentDirection = snake_Direction.LEFT;
+                }
+              },
+              child: GridView.builder(
+                  itemCount: totalNumberOfSquares,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: rowSize),
+                  itemBuilder: (context, index) {
+                    if (snakePos.contains(index)) {
+                      return const SnakePixel();
+                    } else if (foodPos == index) {
+                      return const FoodPixel();
+                    } else {
+                      return const BlankPixel();
+                    }
+                  }),
+            ),
           ),
-        ),
 
-        //play button
-        Expanded(
-          child: Container(
-            child: Center(
-              child: MaterialButton(
-                child: Text('PLAY'),
-                color: gameHasStarted ? Colors.grey : Colors.pink,
-                onPressed: gameHasStarted ? () {} : startGame,
+          //play button
+          Expanded(
+            child: Container(
+              child: Center(
+                child: MaterialButton(
+                  child: Text('PLAY'),
+                  color: gameHasStarted ? Colors.grey : Colors.pink,
+                  onPressed: gameHasStarted ? () {} : startGame,
+                ),
               ),
             ),
           ),
-        ),
-      ]),
+        ]),
+      ),
     );
   }
 }
