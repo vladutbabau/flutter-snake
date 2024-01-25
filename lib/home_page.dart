@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:snake/blank_pixel.dart';
 import 'package:snake/food_pixel.dart';
+import 'package:snake/highscore_tile.dart';
 import 'package:snake/snake_pixel.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,7 +22,9 @@ class _HomePageState extends State<HomePage> {
   int rowSize = 10;
   int totalNumberOfSquares = 100;
 
+  //Setarile jocului
   bool gameHasStarted = false;
+  final _nameController = TextEditingController();
 
   // Scorul utilizatorului
   int currentScore = 0;
@@ -33,6 +37,27 @@ class _HomePageState extends State<HomePage> {
 
   // Pozitia mancarii
   int foodPos = 55;
+
+  // Lista cu highscore-uri
+  List<String> highscore_DocIds = [];
+  late final Future? letsGetDocIds;
+
+  @override
+  void initState() {
+    letsGetDocIds = getDocId();
+    super.initState();
+  }
+
+  Future getDocId() async {
+    await FirebaseFirestore.instance
+        .collection("highscores")
+        .orderBy("score", descending: true)
+        .limit(10)
+        .get()
+        .then((value) => value.docs.forEach((element) {
+              highscore_DocIds.add(element.reference.id);
+            }));
+  }
 
   // Incepe jocul
   void startGame() {
@@ -57,6 +82,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text('Scorul tau este de: ' + currentScore.toString()),
                       TextField(
+                        controller: _nameController,
                         decoration: InputDecoration(hintText: 'Introdu numele'),
                       ),
                     ],
@@ -80,10 +106,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void submitScore() {
+    // Accesam colectia
+    var database = FirebaseFirestore.instance;
+
     // Adaugam scorul in firebase
+    database.collection('highscores').add({
+      "name": _nameController.text,
+      "score": currentScore,
+    });
   }
 
-  void newGame() {
+  Future newGame() async {
+    highscore_DocIds = [];
+    await getDocId();
     setState(() {
       snakePos = [
         0,
@@ -195,26 +230,41 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 // Scorul utilizatorului
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Scorul curent"),
-                    Text(
-                      currentScore.toString(),
-                      style: TextStyle(fontSize: 36),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Scorul curent"),
+                      Text(
+                        currentScore.toString(),
+                        style: TextStyle(fontSize: 36),
+                      ),
+                    ],
+                  ),
                 ),
 
                 // Cele mai bune scoruri
-                Text('Cele mai bune scoruri: ')
+                Expanded(
+                  child: gameHasStarted
+                      ? Container()
+                      : FutureBuilder(
+                          future: letsGetDocIds,
+                          builder: (context, snapshot) {
+                            return ListView.builder(
+                                itemCount: highscore_DocIds.length,
+                                itemBuilder: ((context, index) {
+                                  return HighscoreTile(
+                                      documentId: highscore_DocIds[index]);
+                                }));
+                          }),
+                )
               ],
             ),
           ),
 
           // game grid
           Expanded(
-            flex: 4,
+            flex: 3,
             child: GestureDetector(
               onVerticalDragUpdate: (details) {
                 if (details.delta.dy > 0 &&
